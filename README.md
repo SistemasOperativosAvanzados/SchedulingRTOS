@@ -20,6 +20,10 @@ LLF: Least Laxity First
 
 3. sudo apt-get install glade
 	Instala glade.
+4. sudo apt-get install texlive-full
+	Instala los complementos necesarios para latex con beamer.
+5. sudo apt-get install evince
+	Instala el programa para abrir la presentacion desde consola.
 
 
 # How to run?
