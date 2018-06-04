@@ -1,4 +1,5 @@
 #include <gtk/gtk.h>
+#include "beamer.h"
 // #include "logicInterfaz.h"
 
 #define bufSize 1024
@@ -7,16 +8,13 @@ GtkBuilder *gtkBuilder;
 GtkWidget *window;
 GtkWidget *btn_cancelar;
 GtkWidget *btn_procesar;
-GtkWidget *rb_expropiativo;
-GtkWidget *rb_noExpropiativo;
-GtkWidget *fileChooser;
-GtkWidget *btn_ChooseFile;
 GtkWidget *btn_create;
-GtkWidget ***threads;
+GtkWidget ***tasks;
 GtkWidget ***threadsInterfaz;
 GtkWidget *spn_numProcess;
-GtkWidget *spn_quantum;
 GtkWidget *SRWindowThreads;
+GtkWidget *scrWndNtasks;
+GtkWidget *scrWndTasksErrors;
 GtkWidget **objetos;
 
 
@@ -36,195 +34,208 @@ char *filename;
 int nObjetos;
 char **infoThreads;
 
-// void executeFloyd(){
-//     printf("FLoyd Func\n");
-//     system("gcc -Wall -g -o testFloyd Floyd/FloydInterfaz.c Floyd/logicaFloyd.c `pkg-config --cflags --libs gtk+-3.0`-w -lm");
-//     system("./testFloyd&");
-   
-// }//end execute floyd
-
 void on_window_destroy (GtkWidget *object, gpointer user_data) {
     gtk_main_quit();
 }
 
 
-void testInfoThreads(int totalThreads){
-	GtkWidget *table;
-	table = gtk_grid_new();
-	GtkWidget *label;
-	threads= calloc(totalThreads+1,sizeof(GtkWidget));
-	
-
-	int i;
-    for(i=0; i<totalThreads+1;i++)
-        threads[i]=calloc(nObjetos,sizeof(GtkWidget));
-
-
-	gtk_container_add (GTK_CONTAINER (SRWindowThreads), table);
-	label=gtk_label_new("Thread");
-    gtk_grid_attach (GTK_GRID (table), label, 0, 0, 1, 1);
-
-    label=gtk_label_new("Boletos");
-    gtk_grid_attach (GTK_GRID (table), label, 1, 0, 1, 1);
-
-    label=gtk_label_new("Trabajo");
-    gtk_grid_attach (GTK_GRID (table), label, 2, 0, 1, 1);  
-
-	int x;
-	const char s[2] = ">";
-	for(x=0;x<totalThreads;x++){ //columnas
-		printf(" x %d\n",x );
-		printf("infoThreads %s\n", infoThreads[x] );
-
-		char *token;
-		token = (char *)calloc(totalThreads+1,sizeof(char));
-   
-		  /* get the first token */
-	 	token = strtok(infoThreads[x], s);
-	    int ctoken = 0;
-	 	//    walk through other tokens 
-	 	 while( token != NULL ) {
-	 	    printf( "token = %s\n", token );
-	 	    printf("ctoken = %d\n",ctoken );
-	    
-	 	    
-	 	    if(ctoken == 0){
-	 	    	printf("ctoken == 0 trae esto %s\n",token );
-	 	    }
-	 	    
-	 	    GtkWidget *entry;
-            entry = gtk_entry_new ();
-            threads[x][ctoken]= entry;
-            gtk_entry_set_text(entry,g_strdup_printf("%s", token));
-            gtk_grid_attach (GTK_GRID (table), entry, ctoken, x+1, 1, 1); 
-            printf("Almacenando en x= %d y y=%d\n",ctoken,x);
-            token = strtok(NULL, s);
-            ctoken = ctoken + 1;
-              
-            //strcpy(infoThreadsUI[x][ctoken],token);
-
-            //printf("esto tiene entry %s ", gtk_entry_get_text(GTK_ENTRY(threads[x][ctoken])));
-	    }
-
-	}
-	 gtk_widget_show_all (window);  
-	 printf("sali del createWidget\n");
-}
-
 void processThreads(){
 	printf("Inside processThreads\n");
-	int isExp = 0;
+	int runRM = 0;
+	int runEDF = 0;
+	int runLLF = 0;
+
+	int aloneRM = 0;
+	int aloneEDF = 0;
+	int aloneLLF = 0;
 	
 	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(chckBtn_rm))){
-		isExp = 1;
+		runRM = 1;
 		printf(" chckBtn_rm\n");
 	} 
+	if(runRM){
+		if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(radbtn_rm_si))){
+			aloneRM = 1;
+			printf(" Slide Alone for RM\n");
+		} 
+	}
 	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(chckBtn_edf))){
-		isExp = 0;
+		runEDF = 0;
 		printf("chckBtn_edf\n");
+	}
+	if(runEDF){
+		if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(radbtn_edf_si))){
+			aloneEDF = 1;
+			printf(" Slide Alone for EDF\n");
+		} 
 	}
 
 	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(chckBtn_llf))){
-		isExp = 0;
+		runLLF = 0;
 		printf("chckBtn_llf\n");
 	}
-	
-	// gint gnumThreads = gtk_spin_button_get_value_as_int (spn_numProcess);
-	// int numThreadsUI = gnumThreads;
-	
-	
+	if(runLLF){
+		if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(radbtn_llf_si))){
+			aloneLLF = 1;
+			printf(" Slide Alone for LLF\n");
+		} 
+	}
 
-	// printf("Num threads %d\n", gnumThreads );
 
-	// int* nTickets;
-	// int* nWork;
-	// char** names;
+	printf("nTasks %d\n", nObjetos );
+
+	int* nPeriods;
+	int* nComputations;
+
 	// int nt=0;
 	// int nw=0;
 	
-	// nTickets = (int*) calloc(numThreadsUI,sizeof(int));
-	// nWork = (int*) calloc(numThreadsUI,sizeof(int));
-	// names = calloc(numThreadsUI,sizeof(char*));
-	// for (int i=0;i<numThreadsUI;i++){
-	// 	names[i] = calloc(numThreadsUI+1,sizeof(char*));
+	nPeriods = (int*) calloc(nObjetos,sizeof(int *));
+	nComputations = calloc(nObjetos,sizeof(int*));
+	// for (int i=0;i<nObjetos;i++){
+	// 	info[i] = calloc(nObjetos+1,sizeof(int));
 	// }
+	GList *children, *iter;
+	children = gtk_container_get_children(GTK_CONTAINER(scrWndTasksErrors));
+	for(iter = children; iter != NULL; iter = g_list_next(iter))
+	  gtk_widget_destroy(GTK_WIDGET(iter->data));
+	g_list_free(children);
 
+	int y;
+	int x;
+	int valor;
+	int valor2;
+	GtkWidget *table;
+	table = gtk_grid_new();
+	gtk_container_add (GTK_CONTAINER (scrWndTasksErrors), table);
+	int continueB = 1;
 
-	// int y;
-	// int x;
-	// int valor;
-	// int valor2;
-	// char *nombre;
-
-	//  for(y=0; y<numThreadsUI;y++){ //filas
-	//  	//for(x=0;x<3;x++){ //columnas
-	//  		//printf("%s\n", threads[y][x] );
-	//  	printf("Estoy en el for.\n");
-
-	//  	nombre = gtk_entry_get_text(GTK_ENTRY(threads[y][0]));
-	//  	strcpy(names[y],nombre);
-	//  	printf("> %s ", names[y]);
-	//  	valor = atoi(gtk_entry_get_text(GTK_ENTRY(threads[y][1])));
-	//  	nTickets[y] = valor;
-	//  	printf("> %d ", nTickets[y] );
-	//  	valor2 = atoi(gtk_entry_get_text(GTK_ENTRY(threads[y][2])));
-	//  	nWork[y] = valor2;
-	//  	printf("> %d \n", nWork[y]);
-	//  		//atoi(gtk_entry_get_text(GTK_ENTRY(capacidades[0][y])));
-	//         //threads[y-1][x]= entry;
-	//    }
-	// //}
+	 for(y=0; y<nObjetos;y++){ //filas
+	 	printf("Estoy en el for.\n");
+	 	valor = atoi(gtk_entry_get_text(GTK_ENTRY(tasks[y][1])));
+	 	nPeriods[y] = valor;
+	 	printf("> %d ", nPeriods[y] );
+	 	valor2 = atoi(gtk_entry_get_text(GTK_ENTRY(tasks[y][2])));
+	 	nComputations[y] = valor2;
+	 	printf("> %d \n", nComputations[y]);	
+	 	if(nPeriods[y]<nComputations[y]){
+	 		GtkWidget *label;
+	 		continueB = 0;
+	 		char str[2000];
+			sprintf(str, "** Verifique la tarea %d, tiene el tiempo de ejecución mayor al periodo.  ", y);					
+            label=gtk_label_new(str);
+            gtk_grid_attach (GTK_GRID (table), label, 0, y, 1, 1);
+	 		
+	 	} 	
+	   }
+	 gtk_widget_show_all (window);  
+	 printf("continueB %d\n", continueB );
+	 if(continueB == 1){
+	 	printf("Inside continueB ==1  %d\n", continueB );
+	 	schedulingRTOSBeamer(nObjetos, runRM,aloneRM,runEDF,aloneEDF,runLLF,aloneLLF,nPeriods,nComputations);
+	 }
+	//}
 	// //starProcessLottery(isExp,  numThreadsUI, quantum,nWork,nTickets,names);
 }
+// void hola(){
+// 	printf("KArhy\n");
+// }
 
-void generaThreadsInfo(GtkWidget *widget, gpointer user_data)
+// void preparedAlgorithms(int nTasks, int runRM, int aloneRM, int runEDF, int aloneEDF, int runLLF, int aloneLLF, int* nPeriods, int* nComputations){
+// 	printf("Inside preparedAlgorithms");
+// 	typedef struct t Table;
+// 	typedef struct g Game;
+// 	typedef struct lcm LeastCommon;
+// 	printf("Inside preparedAlgorithms");
+// 	Table* table;
+// 	table = calloc(nTasks, sizeof(Table));
+// 	int** ejecutionTable;
+// 	int cont = 0;
+// 	for(cont=0; cont<nTasks;cont++){ 
+// 		strcpy(table[cont].task,"1");
+// 		table[cont].ejecutionTime= nComputations[cont];
+// 		table[cont].period= nPeriods[cont];
+// 		table[cont].isActive=1;
+// 		table[cont].stillRunning=0;
+// 		table[cont].times=1;
+// 		table[cont].remaining=0;
+
+// 		printf("table[cont].ejecutionTime: %d", table[cont].ejecutionTime);
+// 		printf("table[cont].period: %d", table[cont].period);
+// 	}
+// }//preparedAlgorithms
+void generaTasksInfo(GtkWidget *widget, gpointer user_data)
 {
-    GtkWidget *table;
+	GList *children, *iter;
 
-    printf(" Inside generaThreadsInfo\n");
+	children = gtk_container_get_children(GTK_CONTAINER(SRWindowThreads));
+	for(iter = children; iter != NULL; iter = g_list_next(iter))
+	  gtk_widget_destroy(GTK_WIDGET(iter->data));
+	g_list_free(children);
+
+	children = gtk_container_get_children(GTK_CONTAINER(scrWndNtasks));
+	for(iter = children; iter != NULL; iter = g_list_next(iter))
+	  gtk_widget_destroy(GTK_WIDGET(iter->data));
+	g_list_free(children);
+	GtkWidget *table;
+
+    printf(" Inside generaTasksInfo\n");
     gint cantObjs = gtk_spin_button_get_value_as_int (spn_numProcess);
     nObjetos = cantObjs;
-    printf(" SPinL %d\n",nObjetos );
-    
-    table = gtk_grid_new();
-    threads= calloc(nObjetos+1,sizeof(GtkWidget));
-    int i;
-    for(i=0; i<nObjetos+1;i++)
-        threads[i]=calloc(nObjetos,sizeof(GtkWidget));
-    gtk_container_add (GTK_CONTAINER (SRWindowThreads), table);
 
-    int x;
-    int y;
-    for(x=0;x<3;x++){ //columnas
-       for(y=0; y<nObjetos+1;y++){ //filas
-            GtkWidget *label;
-            if(y==0){
-            	if(x==0){            		
-                    label=gtk_label_new(" ");
-                }else if(x==1){
-                    label=gtk_label_new("Periodo ");
-                }else if(x==2){
-                    label=gtk_label_new("Tiempo de ejecucion ");
-                }                
-                gtk_grid_attach (GTK_GRID (table), label, x, y, 1, 1);
-            }else{            	
-          		if(x == 0){          			
-          			char str[20];
-					sprintf(str, "Tarea %d:  ", y);					
-                    label=gtk_label_new(str);
-                    gtk_grid_attach (GTK_GRID (table), label, x, y, 1, 1);
-          		}else{
-          			GtkWidget *entry;
-	                entry = gtk_entry_new ();
-	                threads[y-1][x]= entry; 
-	                gtk_grid_attach (GTK_GRID (table), entry, x, y, 1, 1); 	                
+    if(nObjetos == 0 || nObjetos<0 || nObjetos>7){
+	    GtkWidget *table;
+		table = gtk_grid_new();
+		gtk_container_add (GTK_CONTAINER (scrWndNtasks), table);
+		GtkWidget *label;
+ 		char str[2000];
+		sprintf(str, "** El numero de tareas debe estar en el rango de 0 a 1.");					
+        label=gtk_label_new(str);
+        gtk_grid_attach (GTK_GRID (table), label, 0, 0, 1, 1);
+    }else{
+    	printf(" nTasks:  %d\n",nObjetos );
+	    
+	    table = gtk_grid_new();
+	    tasks= calloc(nObjetos+1,sizeof(GtkWidget));
+	    int i;
+	    for(i=0; i<nObjetos+1;i++)
+	        tasks[i]=calloc(nObjetos,sizeof(GtkWidget));
+	    gtk_container_add (GTK_CONTAINER (SRWindowThreads), table);
 
-          		}                   
+	    int x;
+	    int y;
+	    for(x=0;x<3;x++){ //columnas
+	       for(y=0; y<nObjetos+1;y++){ //filas
+	            GtkWidget *label;
+	            if(y==0){
+	            	if(x==0){            		
+	                    label=gtk_label_new(" ");
+	                }else if(x==1){
+	                    label=gtk_label_new("Periodo ");
+	                }else if(x==2){
+	                    label=gtk_label_new("Tiempo de ejecucion ");
+	                }                
+	                gtk_grid_attach (GTK_GRID (table), label, x, y, 1, 1);
+	            }else{            	
+	          		if(x == 0){          			
+	          			char str[20];
+						sprintf(str, "Tarea %d:  ", y);					
+	                    label=gtk_label_new(str);
+	                    gtk_grid_attach (GTK_GRID (table), label, x, y, 1, 1);
+	          		}else{
+	          			GtkWidget *entry;
+		                entry = gtk_entry_new ();
+		                tasks[y-1][x]= entry; 
+		                gtk_grid_attach (GTK_GRID (table), entry, x, y, 1, 1); 	                
 
-                   
-            }       
-        }// end primer for
-    }//end for  
+	          		}                   
+
+	                   
+	            }       
+	        }// end primer for
+	    }//end for  
+    }
+	    
     gtk_widget_show_all (window);  
 }
 
@@ -245,8 +256,10 @@ int main(int argc, char *argv[])
     
     SRWindowThreads = GTK_WIDGET (gtk_builder_get_object (gtkBuilder, "SRWindowThreads"));
     gtk_scrolled_window_set_min_content_width(GTK_SCROLLED_WINDOW(SRWindowThreads),600);
-
-
+    scrWndTasksErrors =  GTK_WIDGET (gtk_builder_get_object (gtkBuilder, "scrWndTasksErrors"));
+    gtk_scrolled_window_set_min_content_width(GTK_SCROLLED_WINDOW(scrWndTasksErrors),600);
+    scrWndNtasks=  GTK_WIDGET (gtk_builder_get_object (gtkBuilder, "scrWndNtasks"));
+     gtk_scrolled_window_set_min_content_width(GTK_SCROLLED_WINDOW(scrWndNtasks),200);
     radbtn_rm_si = GTK_WIDGET (gtk_builder_get_object (gtkBuilder, "radbtn_rm_si"));
     radbtn_rm_no = GTK_WIDGET (gtk_builder_get_object (gtkBuilder, "radbtn_rm_no"));
 
@@ -262,7 +275,7 @@ int main(int argc, char *argv[])
 
     g_signal_connect (window, "destroy", G_CALLBACK (on_window_destroy), NULL);
     g_signal_connect (btn_cancelar, "clicked", G_CALLBACK (on_window_destroy), NULL);
-    g_signal_connect (btn_create, "clicked",G_CALLBACK (generaThreadsInfo),NULL);
+    g_signal_connect (btn_create, "clicked",G_CALLBACK (generaTasksInfo),NULL);
     g_signal_connect (btn_procesar, "clicked",G_CALLBACK (processThreads),NULL);
     
 
