@@ -1,20 +1,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <inttypes.h>
+#include "RM_EDF.h"
 #include "beamer.h"
 #include <math.h>
 
-void main(){
-    schedulingRTOSBeamer();
-}
-int schedulingRTOSBeamer(){
+
+int schedulingRTOSBeamer(int nTasks, int runRM, int aloneRM, int runEDF, int aloneEDF, int runLLF, int aloneLLF, int* nPeriods, int* nComputations){
     int i,j;
     FILE* fp;
 
     fp = fopen("schedulingRTOS.tex", "w");
 
 
-    fprintf(fp,"\\documentclass[10]{beamer} \n");
+    fprintf(fp,"\\documentclass[xcolor=table]{beamer}\n");
     fprintf(fp,"\\usepackage[T1]{fontenc} \n");
     fprintf(fp,"\\usepackage{lmodern}\n");
     fprintf(fp,"\\usepackage[spanish]{babel}\n");
@@ -22,6 +21,8 @@ int schedulingRTOSBeamer(){
     fprintf(fp,"\\usepackage{xcolor}\n");
     fprintf(fp,"\\usepackage{color}\n");
     fprintf(fp,"\\usepackage{dirtytalk}\n");
+    fprintf(fp,"\\usepackage{graphicx}\n");
+    fprintf(fp,"\\usepackage{booktabs}\n");
 
     fprintf(fp,"\\definecolor{dgreen}{rgb}{0.,0.6,0.}\n");
     fprintf(fp,"\\definecolor{WHITE}{RGB}{255,255,255}\n");
@@ -47,6 +48,7 @@ int schedulingRTOSBeamer(){
     fprintf(fp,"\\color{WHITE} \\author{KATHY ANDRE\\'INA BRENES GUERRERO. \\\\ SAMUEL YOO.}\n");
     fprintf(fp,"\\date{\\em \\color{WHITE} \\today}\n");
     fprintf(fp,"\\begin{document}\n");
+    fprintf(fp,"\\nonstopmode\n");
     fprintf(fp,"\\begin{frame}\n");
     fprintf(fp,"\\color{white}\n");
     fprintf(fp,"\\titlepage portada\n");
@@ -128,6 +130,66 @@ int schedulingRTOSBeamer(){
     fprintf(fp,"\\\\ \\textit{  s = (d-t)  -c }   \n");
     fprintf(fp,"\\newline\n");
     fprintf(fp,"\\\\ donde d es el tiempo l\\'imite del proceso, t es el tiempo real desde el inicio del ciclo, y c es el tiempo de c\\'alculo restante.\n");
+    fprintf(fp,"\\end{frame} \n");
+
+    fprintf(fp,"\\begin{frame}\n");
+    fprintf(fp,"\\color{white}\n");
+    fprintf(fp,"\\frametitle{Ejecuci\\'on}\n");
+    fprintf(fp,"\\resizebox{\\linewidth}{!}{\n"); 
+    fprintf(fp,"\\\\RM \n");
+    fprintf(fp,"\\newline\n");
+    fprintf(fp,"\\\\ \\begin{tabular}{*{30}{1}}\n");
+    fprintf(fp,"\\\\ \\toprule  \n");
+    fprintf(fp,"Tareas &1&2&3&4&5&6&7&8&9&10&11&12&13&14&15&16&17&18&19&20&21&22&23&24&25&26&27&28\n");
+    fprintf(fp,"\\\\ \\midrule  \n");
+    fprintf(fp,"Tarea 1& \\cellcolor{blue!25}& & & & & & & & & & & & & & & & & & & & & & & & & & &  \\\\ \n");
+    fprintf(fp,"Tarea 2& & & & & & & & & & & & & & & & & & & & & & & & & & & &  \\\\ \n");
+    fprintf(fp,"Tarea 3& & & & & & & & & & & & & & & & & & & & & & & & & & &  \\\\ \n");
+    fprintf(fp,"Tarea 4& & & & & & & & & & & & & & & & & & & & & & & & & & &  \\\\ \n");
+    fprintf(fp,"Tarea 5& & & & & & & & & & & & & & & & & & & & & & & & & & &  \\\\ \n");
+    fprintf(fp,"Tarea 6& & & & & & & & & & & & & & & & & & & & & & & & & & &  \\\\ \n");
+    fprintf(fp,"\\\\ \\bottomrule  \n");
+    fprintf(fp,"\\\\ \\end{tabular}\n");
+    fprintf(fp,"\\\\ }\n");
+
+    ///EDF
+    fprintf(fp,"\\newline\n");
+    fprintf(fp,"\\resizebox{\\linewidth}{!}{\n"); 
+    fprintf(fp,"\\\\EDF \n");
+    fprintf(fp,"\\newline\n");
+    fprintf(fp,"\\\\ \\begin{tabular}{*{30}{1}}\n");
+    fprintf(fp,"\\\\ \\toprule  \n");
+    fprintf(fp,"Tareas &1&2&3&4&5&6&7&8&9&10&11&12&13&14&15&16&17&18&19&20&21&22&23&24&25&26&27&28\n");
+    fprintf(fp,"\\\\ \\midrule  \n");
+    fprintf(fp,"Tarea 1& &\\cellcolor{blue!25}& & & & & & & & & & & & & & & & & & & & & & & & & &  \\\\ \n");
+    fprintf(fp,"Tarea 2& & & & & & & & & & & & & & & & & & & & & & & & & & & &  \\\\ \n");
+    fprintf(fp,"Tarea 3& & & & & & & & & & & & & & & & & & & & & & & & & & &  \\\\ \n");
+    fprintf(fp,"Tarea 4& & & & & & & & & & & & & & & & & & & & & & & & & & &  \\\\ \n");
+    fprintf(fp,"Tarea 5& & & & & & & & & & & & & & & & & & & & & & & & & & &  \\\\ \n");
+    fprintf(fp,"Tarea 6& & & & & & & & & & & & & & & & & & & & & & & & & & &  \\\\ \n");
+    fprintf(fp,"\\\\ \\bottomrule  \n");
+    fprintf(fp,"\\\\ \\end{tabular}\n");
+    fprintf(fp,"\\\\ }\n");
+    ///// LLF
+    fprintf(fp,"\\newline\n");
+    fprintf(fp,"\\resizebox{\\linewidth}{!}{\n"); 
+    fprintf(fp,"\\\\LLF \n");
+    fprintf(fp,"\\newline\n");
+    fprintf(fp,"\\\\ \\begin{tabular}{*{30}{1}}\n");
+    fprintf(fp,"\\\\ \\toprule  \n");
+    fprintf(fp,"Tareas &1&2&3&4&5&6&7&8&9&10&11&12&13&14&15&16&17&18&19&20&21&22&23&24&25&26&27&28\n");
+    fprintf(fp,"\\\\ \\midrule  \n");
+    fprintf(fp,"Tarea 1& & & & & & & & & & & & & & & & & & & & & & & & & & & &  \\\\ \n");
+    fprintf(fp,"Tarea 2& & &\\cellcolor{blue!25}& & & & & & & & & & & & & & & & & & & & & & & & &  \\\\ \n");
+    fprintf(fp,"Tarea 3& & & & & & & & & & & & & & & & & & & & & & & & & & &  \\\\ \n");
+    fprintf(fp,"Tarea 4& & & & & & & & & & & & & & & & & & & & & & & & & & &  \\\\ \n");
+    fprintf(fp,"Tarea 5& & & & & & & & & & & & & & & & & & & & & & & & & & &  \\\\ \n");
+    fprintf(fp,"Tarea 6& & & & & & & & & & & & & & & & & & & & & & & & & & &  \\\\ \n");
+    fprintf(fp,"\\\\ \\bottomrule  \n");
+    fprintf(fp,"\\\\ \\end{tabular}\n");
+    fprintf(fp,"\\\\ }\n");
+
+    fprintf(fp,"\\newline\n");
     fprintf(fp,"\\end{frame} \n");
 
     // fprintf(fp,"\\frame{\\frametitle{knapSack}\n ");
